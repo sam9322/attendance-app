@@ -1,0 +1,3476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Admin Dashboard - Teacher Panel</title>
+    <link rel="icon" href="./images/favicon.ico.png">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- SweetAlert2 CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+      .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 0;
+        margin-bottom: 30px;
+      }
+      
+      .stats-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+      }
+      
+      .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #667eea;
+      }
+      
+      .action-buttons {
+        margin-bottom: 20px;
+      }
+      
+      .student-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      
+      .attendance-btn {
+        margin: 2px;
+        min-width: 60px;
+      }
+      
+      .present {
+        background-color: #28a745;
+        border-color: #28a745;
+      }
+      
+      .absent {
+        background-color: #dc3545;
+        border-color: #dc3545;
+      }
+      
+      .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      
+      .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      }
+      
+      .btn-primary {
+        background-color: #667eea;
+        border-color: #667eea;
+      }
+      
+      .btn-primary:hover {
+        background-color: #5a6fd8;
+        border-color: #5a6fd8;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="admin-header">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Admin Dashboard</h1>
+            <p class="mb-0">Welcome, <span id="teacherName">Teacher</span></p>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-outline-light btn-sm me-2" onclick="refreshDashboardData()" title="Refresh Dashboard Data">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button class="btn btn-outline-light me-2" onclick="openTeacherProfileModal()">
+              <i class="fas fa-user-edit"></i> Update Profile
+            </button>
+            <button id="logoutButton" class="btn btn-outline-light" onclick="logout()">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Statistics Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stats-card">
+            <div class="stats-number" id="totalStudents">0</div>
+            <div class="text-muted">Total Students</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <div class="stats-number" id="presentToday">0</div>
+            <div class="text-muted">Present Today</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <div class="stats-number" id="absentToday">0</div>
+            <div class="text-muted">Absent Today</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-card">
+            <div class="stats-number" id="attendanceRate">0%</div>
+            <div class="text-muted">Attendance Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+          <i class="fas fa-plus"></i> Add New Student
+        </button>
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#attendanceReportModal">
+          <i class="fas fa-chart-bar"></i> View Attendance Report
+        </button>
+        <button class="btn btn-success" onclick="markAllPresent()">
+          <i class="fas fa-check-double"></i> Mark All Present
+        </button>
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#manageSubjectsModal">
+          <i class="fas fa-book"></i> Manage Subjects
+        </button>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#examMarksModal">
+          <i class="fas fa-graduation-cap"></i> Manage Exam Marks
+        </button>
+      </div>
+
+      <!-- Subject Filter -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Filter by Subject:</label>
+          <select class="form-control" id="subjectFilter" onchange="filterStudentsBySubject()">
+            <option value="">All Subjects</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Current Subject for Attendance:</label>
+          <select class="form-control" id="currentSubject" onchange="updateAttendanceHeaders()">
+            <option value="">Select Subject</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Exam Type:</label>
+          <select class="form-control" id="examTypeFilter" onchange="filterStudentsByExamType()">
+            <option value="">All Exams</option>
+            <option value="sectional1">Sectional Exam 1</option>
+            <option value="sectional2">Sectional Exam 2</option>
+            <option value="sectional3">Sectional Exam 3</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="student-table">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>S/N</th>
+                <th>Student Name</th>
+                <th>Email</th>
+                <th>PRN Number</th>
+                <th>Subjects</th>
+                <th id="attendanceHeader">Today's Attendance</th>
+                <th>Exam Marks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+              <!-- Students will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Subjects Modal -->
+    <div class="modal fade" id="manageSubjectsModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Manage My Subjects</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="manageSubjectsForm">
+              <div class="mb-3">
+                <label class="form-label">My Subjects (comma-separated)</label>
+                <input type="text" class="form-control" id="teacherSubjects" placeholder="e.g., Mathematics, Physics">
+                <small class="form-text text-muted">Enter all subjects you teach, separated by commas</small>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="updateTeacherSubjects()">Update Subjects</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Student</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addStudentForm">
+              <div class="mb-3">
+                <label class="form-label">Student Name</label>
+                <input type="text" class="form-control" id="newStudentName" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="newStudentEmail" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">PRN Number</label>
+                <input type="text" class="form-control" id="newStudentPrn" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Subjects (comma-separated)</label>
+                <input type="text" class="form-control" id="newStudentSubjects" placeholder="e.g., Mathematics, Physics">
+                <small class="form-text text-muted">Enter subjects this student is enrolled in</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" id="newStudentPassword" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="addNewStudent()">Add Student</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Student</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editStudentForm">
+              <input type="hidden" id="editStudentId">
+              <div class="mb-3">
+                <label class="form-label">Student Name</label>
+                <input type="text" class="form-control" id="editStudentName" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="editStudentEmail" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">PRN Number</label>
+                <input type="text" class="form-control" id="editStudentPrn" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Subjects (comma-separated)</label>
+                <input type="text" class="form-control" id="editStudentSubjects" placeholder="e.g., Mathematics, Physics">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="updateStudent()">Update Student</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance Report Modal -->
+    <div class="modal fade" id="attendanceReportModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Attendance Report</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Select Date</label>
+                <input type="date" class="form-control" id="reportDate" onchange="loadAttendanceReport()">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Select Student</label>
+                <select class="form-control" id="reportStudent" onchange="loadStudentAttendance()">
+                  <option value="">All Students</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Student Name</th>
+                    <th>PRN</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="attendanceReportBody">
+                  <!-- Report data will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exam Marks Modal -->
+    <div class="modal fade" id="examMarksModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-graduation-cap"></i> Manage Sectional Exam Marks</h5>
+            <div class="d-flex">
+              <button type="button" class="btn btn-outline-light btn-sm me-2" onclick="refreshTeacherData()" title="Refresh Teacher Data">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+              </button>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <!-- Teacher Info Section -->
+            <div class="alert alert-primary mb-4">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6><i class="fas fa-user-tie"></i> Teacher Information (From Firestore):</h6>
+                  <p class="mb-1"><strong>Name:</strong> <span id="teacherNameDisplay"></span></p>
+                  <p class="mb-1"><strong>Email:</strong> <span id="teacherEmailDisplay"></span></p>
+                  <p class="mb-0"><strong>User ID:</strong> <small class="text-muted" id="teacherUserId"></small></p>
+                </div>
+                <div class="col-md-6">
+                  <h6><i class="fas fa-book"></i> Teaching Subjects (From Firestore):</h6>
+                  <div id="teacherSubjectsDisplay">
+                    <span class="badge bg-info me-1">Loading...</span>
+                  </div>
+                  <small class="text-muted mt-2 d-block">Last Updated: <span id="teacherLastUpdated"></span></small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selection Section -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label class="form-label"><strong>Select Subject:</strong></label>
+                <select class="form-control form-control-lg" id="examSubject" onchange="loadStudentsForExam()">
+                  <option value="">-- Choose Subject --</option>
+                </select>
+                <small class="form-text text-muted">Select the subject to enter exam marks</small>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label"><strong>Select Sectional Exam:</strong></label>
+                <select class="form-control form-control-lg" id="examType" onchange="loadStudentsForExam()">
+                  <option value="">-- Choose Sectional Exam --</option>
+                  <option value="sectional1">📝 Sectional Exam 1</option>
+                  <option value="sectional2">📝 Sectional Exam 2</option>
+                  <option value="sectional3">📝 Sectional Exam 3</option>
+                </select>
+                <small class="form-text text-muted">Select which sectional exam to enter marks for</small>
+              </div>
+            </div>
+            
+            <!-- Manual Mark Entry Section -->
+            <div id="manualMarkEntry" style="display: none;">
+              <div class="alert alert-info">
+                <h6><i class="fas fa-edit"></i> Manual Mark Entry:</h6>
+                <p class="mb-0">Enter marks manually for each student. Both "Marks" and "Obtained Marks" are required.</p>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-success btn-lg" onclick="fillAllWithSameMarks()">
+                    <i class="fas fa-fill"></i> Fill All with Same Marks
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-warning btn-lg" onclick="clearAllMarks()">
+                    <i class="fas fa-eraser"></i> Clear All Marks
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <button type="button" class="btn btn-primary btn-lg" onclick="saveExamMarks()">
+                    <i class="fas fa-save"></i> Submit Exam Marks
+                  </button>
+                </div>
+                <div class="col-md-3">
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-info btn-lg" onclick="uploadMarksFile()">
+                      <i class="fas fa-upload"></i> Upload Marks
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-lg" onclick="downloadMarksTemplate()" title="Download CSV Template">
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="alert alert-info" id="examInstructions" style="display: none;">
+              <h6><i class="fas fa-info-circle"></i> Instructions:</h6>
+              <ul class="mb-0">
+                <li>Enter marks out of <strong>20</strong> for each student</li>
+                <li>Marks should be between <strong>0</strong> and <strong>20</strong></li>
+                <li>Use decimal points if needed (e.g., 18.5)</li>
+                <li>Leave blank if student was absent or mark not available</li>
+                <li>You can submit marks individually or save all at once</li>
+              </ul>
+            </div>
+            
+            <!-- Students List -->
+            <div id="examStudentsList" style="display: none;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6><i class="fas fa-users"></i> Students Enrolled in <span id="selectedSubjectName"></span></h6>
+                <span class="badge bg-primary" id="studentCount">0 students</span>
+              </div>
+              
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead class="table-dark">
+                    <tr>
+                      <th width="5%">#</th>
+                      <th width="15%">Student Name</th>
+                      <th width="12%">PRN Number</th>
+                      <th width="15%">Marks (Out of 20)</th>
+                      <th width="15%">Obtained Marks</th>
+                      <th width="12%">Current Mark</th>
+                      <th width="8%">Status</th>
+                      <th width="20%">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="examMarksTableBody">
+                    <!-- Students for exam marks will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Summary -->
+              <div class="row mt-3">
+                <div class="col-md-6">
+                  <div class="alert alert-success">
+                    <strong>Summary:</strong>
+                    <div id="examSummary">
+                      <small>Enter marks above to see summary</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 text-end">
+                  <button type="button" class="btn btn-success btn-lg" onclick="saveExamMarks()">
+                    <i class="fas fa-save"></i> Save All Marks
+                  </button>
+                  <button type="button" class="btn btn-primary btn-lg ms-2" onclick="uploadMarksFile()">
+                    <i class="fas fa-upload"></i> Upload Marks
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-lg ms-2" onclick="clearExamMarks()">
+                    <i class="fas fa-eraser"></i> Clear All
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- No Students Message -->
+            <div id="noStudentsMessage" style="display: none;">
+              <div class="alert alert-warning text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h5>No Students Found</h5>
+                <p>No students are enrolled in the selected subject. Please check your subject selection or add students to this subject.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Individual Student Mark Submission Modal -->
+    <div class="modal fade" id="individualMarkModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-user-edit"></i> Submit Individual Student Marks</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info">
+              <h6><i class="fas fa-info-circle"></i> Student Information:</h6>
+              <p class="mb-0">
+                <strong>Name:</strong> <span id="individualStudentName"></span><br>
+                <strong>PRN:</strong> <span id="individualStudentPrn"></span><br>
+                <strong>Subject:</strong> <span id="individualStudentSubject"></span><br>
+                <strong>Exam:</strong> <span id="individualStudentExam"></span>
+              </p>
+            </div>
+            
+            <div class="alert alert-primary">
+              <h6><i class="fas fa-user-tie"></i> Teacher Information:</h6>
+              <p class="mb-0">
+                <strong>Teacher:</strong> <span id="individualTeacherName"></span><br>
+                <strong>Teaching Subject:</strong> <span id="individualTeacherSubject"></span>
+              </p>
+            </div>
+            
+            <form id="individualMarkForm">
+              <div class="mb-3">
+                <label class="form-label"><strong>Enter Marks (Out of 20):</strong></label>
+                <div class="input-group input-group-lg">
+                  <input type="number" class="form-control" id="individualMarkInput" 
+                         min="0" max="20" step="0.5" placeholder="0-20" required>
+                  <span class="input-group-text">/ 20</span>
+                </div>
+                <small class="form-text text-muted">Enter marks between 0 and 20. Use decimal points if needed.</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label"><strong>Obtained Marks:</strong></label>
+                <div class="input-group input-group-lg">
+                  <input type="number" class="form-control" id="individualObtainedMarks" 
+                         min="0" max="20" step="0.5" placeholder="0-20" required>
+                  <span class="input-group-text">/ 20</span>
+                </div>
+                <small class="form-text text-muted">Enter the marks obtained by the student out of 20.</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label"><strong>Current Mark:</strong></label>
+                <div id="currentMarkDisplay">
+                  <span class="badge bg-secondary">Not Marked</span>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label"><strong>Remarks (Optional):</strong></label>
+                <textarea class="form-control" id="individualMarkRemarks" 
+                          rows="3" placeholder="Add any remarks about the student's performance..."></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="submitIndividualMark()">
+              <i class="fas fa-upload"></i> Submit Mark
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Exam Marks Modal -->
+    <div class="modal fade" id="viewExamMarksModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Exam Marks for <span id="examStudentName"></span></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Subject</th>
+                    <th>Sectional 1</th>
+                    <th>Sectional 2</th>
+                    <th>Sectional 3</th>
+                    <th>Average</th>
+                    <th>Obtained Marks</th>
+                  </tr>
+                </thead>
+                <tbody id="viewExamMarksTableBody">
+                  <!-- Exam marks will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teacher Profile Modal -->
+    <div class="modal fade" id="teacherProfileModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-user-edit"></i> Update Teacher Profile</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info">
+              <h6><i class="fas fa-info-circle"></i> Profile Information:</h6>
+              <p class="mb-0">Please provide your teaching information. This will help organize your dashboard and exam marks.</p>
+            </div>
+            
+            <form id="teacherProfileForm" onsubmit="event.preventDefault(); updateTeacherProfile();">
+              <div class="mb-3">
+                <label class="form-label"><strong>Full Name</strong></label>
+                <input type="text" class="form-control form-control-lg" id="teacherName" 
+                       placeholder="Enter your full name" required>
+                <small class="form-text text-muted">This will be displayed in the dashboard header</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label"><strong>Teaching Subjects (Optional)</strong></label>
+                <input type="text" class="form-control form-control-lg" id="teacherSubjects" 
+                       placeholder="e.g., Mathematics, Physics, Chemistry">
+                <small class="form-text text-muted">Enter all subjects you teach, separated by commas. This is optional but helps organize your dashboard.</small>
+              </div>
+              
+              <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Important:</h6>
+                <ul class="mb-0">
+                  <li>Name is required, subjects are optional</li>
+                  <li>Subjects should be comma-separated (e.g., "Mathematics, Physics")</li>
+                  <li>You can update this information anytime using the "Update Profile" button</li>
+                  <li>This information helps organize your teaching dashboard</li>
+                </ul>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-primary" onclick="updateTeacherProfile()">
+              <i class="fas fa-save"></i> Update Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+      import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+      import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, where, orderBy, getDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCSye8NePlV_FByjjopY9-sCPNcYZBylPI",
+        authDomain: "student-attendance-21ea5.firebaseapp.com",
+        projectId: "student-attendance-21ea5",
+        storageBucket: "student-attendance-21ea5.firebasestorage.app",
+        messagingSenderId: "453679875810",
+        appId: "1:453679875810:web:97a0e672f34e34db6600bb",
+        measurementId: "G-TH00VX41SF"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // Global variables
+      let students = [];
+      let currentUser = null;
+      let teacherData = null;
+      let currentSubject = "";
+
+      // Initialize
+      async function initialize() {
+        try {
+          // Check if user is authenticated
+          onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              currentUser = user;
+              
+              // Check if user is a teacher
+              const teacherRef = doc(db, "teachers", user.uid);
+              const teacherDoc = await getDoc(teacherRef);
+              
+              if (teacherDoc.exists()) {
+                const teacherData = teacherDoc.data();
+                console.log("Teacher data loaded from Firestore:", teacherData);
+                
+                // Update dashboard header with teacher information
+                updateDashboardHeader(teacherData);
+                
+                // Check if teacher has subjects defined
+                if (!teacherData.subjects || teacherData.subjects.length === 0) {
+                  // Show profile update modal
+                  const profileModal = new bootstrap.Modal(document.getElementById("teacherProfileModal"));
+                  profileModal.show();
+                  
+                  // Pre-fill name if available
+                  if (teacherData.name) {
+                    document.getElementById("teacherName").value = teacherData.name;
+                  }
+                }
+                
+                // Load students
+                await loadStudents();
+                
+                // Show admin dashboard
+                document.getElementById("adminDashboard").style.display = "block";
+                document.getElementById("loginForm").style.display = "none";
+                
+              } else {
+                // User is not a teacher, redirect to login
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Access Denied',
+                  text: 'Only teachers can access this dashboard.'
+                }).then(() => {
+                  signOut(auth);
+                });
+              }
+            } else {
+              // User is not authenticated
+              document.getElementById("adminDashboard").style.display = "none";
+              document.getElementById("loginForm").style.display = "block";
+            }
+          });
+        } catch (error) {
+          console.error("Error initializing:", error);
+        }
+      }
+
+      // Update dashboard header with teacher information
+      function updateDashboardHeader(teacherData) {
+        try {
+          // Update teacher name in header
+          const teacherNameElement = document.getElementById("teacherName");
+          if (teacherNameElement) {
+            teacherNameElement.textContent = teacherData.name || "Teacher";
+          }
+          
+          // Add teacher information display in header
+          const headerContainer = document.querySelector(".admin-header .container .row .col-md-8");
+          if (headerContainer) {
+            // Check if teacher info already exists
+            let teacherInfoElement = headerContainer.querySelector(".teacher-info");
+            if (!teacherInfoElement) {
+              teacherInfoElement = document.createElement("div");
+              teacherInfoElement.className = "teacher-info mt-2";
+              headerContainer.appendChild(teacherInfoElement);
+            }
+            
+            // Create teacher info display
+            let teacherInfoHTML = `
+              <div class="row">
+                <div class="col-md-6">
+                  <small class="text-light">
+                    <i class="fas fa-user"></i> <strong>Name:</strong> ${teacherData.name || "Not Set"}<br>
+                    <i class="fas fa-envelope"></i> <strong>Email:</strong> ${currentUser.email}<br>
+                    <i class="fas fa-user-tag"></i> <strong>Role:</strong> ${teacherData.role || "Teacher"}
+                  </small>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-light">
+                    <i class="fas fa-book"></i> <strong>Teaching Subjects:</strong><br>
+            `;
+            
+            if (teacherData.subjects && teacherData.subjects.length > 0) {
+              teacherInfoHTML += teacherData.subjects.map(subject => 
+                `<span class="badge bg-light text-dark me-1">${subject}</span>`
+              ).join('');
+            } else {
+              teacherInfoHTML += '<span class="badge bg-warning">No subjects assigned</span>';
+            }
+            
+            teacherInfoHTML += `
+                  </small>
+                </div>
+              </div>
+            `;
+            
+            teacherInfoElement.innerHTML = teacherInfoHTML;
+          }
+          
+          console.log("Dashboard header updated with teacher data:", teacherData);
+          
+        } catch (error) {
+          console.error("Error updating dashboard header:", error);
+        }
+      }
+
+      // Logout functionality
+      window.logout = async function() {
+        try {
+          await signOut(auth);
+          Swal.fire({
+            icon: 'success',
+            title: 'Logged Out',
+            text: 'You have been successfully logged out.',
+            timer: 2000,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.href = "index.html";
+          });
+        } catch (error) {
+          console.error("Error logging out:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Logout Error',
+            text: 'Failed to logout. Please try again.'
+          });
+        }
+      };
+
+      // Set today's date in report date input
+      function setTodayDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("reportDate").value = today;
+      }
+
+      // Load teacher data from Firestore
+      async function loadTeacherData() {
+        try {
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          const teacherDoc = await getDoc(teacherRef);
+          
+          if (teacherDoc.exists()) {
+            teacherData = teacherDoc.data();
+            populateSubjectDropdowns();
+            populateTeacherSubjectsModal();
+          } else {
+            // Create teacher document if it doesn't exist
+            await setDoc(teacherRef, {
+              email: currentUser.email,
+              name: currentUser.displayName || "Teacher",
+              subjects: [],
+              role: "teacher"
+            });
+            teacherData = {
+              email: currentUser.email,
+              name: currentUser.displayName || "Teacher",
+              subjects: [],
+              role: "teacher"
+            };
+            populateSubjectDropdowns();
+            populateTeacherSubjectsModal();
+          }
+        } catch (error) {
+          console.error("Error loading teacher data:", error);
+        }
+      }
+
+      // Populate subject dropdowns
+      function populateSubjectDropdowns() {
+        const subjectFilter = document.getElementById("subjectFilter");
+        const currentSubjectSelect = document.getElementById("currentSubject");
+        
+        // Clear existing options
+        subjectFilter.innerHTML = '<option value="">All Subjects</option>';
+        currentSubjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        
+        if (teacherData && teacherData.subjects) {
+          teacherData.subjects.forEach(subject => {
+            const filterOption = document.createElement("option");
+            filterOption.value = subject;
+            filterOption.textContent = subject;
+            subjectFilter.appendChild(filterOption);
+            
+            const currentOption = document.createElement("option");
+            currentOption.value = subject;
+            currentOption.textContent = subject;
+            currentSubjectSelect.appendChild(currentOption);
+          });
+        }
+      }
+
+      // Populate teacher subjects in modal
+      function populateTeacherSubjectsModal() {
+        if (teacherData && teacherData.subjects) {
+          document.getElementById("teacherSubjects").value = teacherData.subjects.join(', ');
+        }
+      }
+
+      // Filter students by subject
+      window.filterStudentsBySubject = function() {
+        const selectedSubject = document.getElementById("subjectFilter").value;
+        displayStudents(selectedSubject);
+      };
+
+      // Update attendance headers based on selected subject
+      window.updateAttendanceHeaders = function() {
+        const selectedSubject = document.getElementById("currentSubject").value;
+        currentSubject = selectedSubject;
+        const header = document.getElementById("attendanceHeader");
+        
+        if (selectedSubject) {
+          header.textContent = `${selectedSubject} - Today's Attendance`;
+        } else {
+          header.textContent = "Today's Attendance";
+        }
+        
+        displayStudents();
+      };
+
+      // Update teacher subjects
+      window.updateTeacherSubjects = async function() {
+        const subjectsInput = document.getElementById("teacherSubjects").value;
+        const subjects = subjectsInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        
+        try {
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          await updateDoc(teacherRef, {
+            subjects: subjects
+          });
+          
+          teacherData.subjects = subjects;
+          populateSubjectDropdowns();
+          
+          const modal = bootstrap.Modal.getInstance(document.getElementById("manageSubjectsModal"));
+          modal.hide();
+          
+          alert("Subjects updated successfully!");
+        } catch (error) {
+          console.error("Error updating subjects:", error);
+          alert("Error updating subjects. Please try again.");
+        }
+      };
+
+      // Load all students from Firestore
+      async function loadStudents() {
+        try {
+          const studentsRef = collection(db, "students");
+          const q = query(studentsRef, orderBy("name"));
+          const querySnapshot = await getDocs(q);
+          
+          students = [];
+          querySnapshot.forEach((doc) => {
+            students.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          });
+
+          displayStudents();
+          updateStatistics();
+          populateStudentSelect();
+        } catch (error) {
+          console.error("Error loading students:", error);
+          alert("Error loading students. Please try again.");
+        }
+      }
+
+      // Display students in table with optional subject filter
+      function displayStudents(subjectFilter = null) {
+        const tbody = document.getElementById("studentsTableBody");
+        tbody.innerHTML = "";
+
+        let filteredStudents = students;
+        if (subjectFilter) {
+          filteredStudents = students.filter(student => 
+            student.subjects && student.subjects.includes(subjectFilter)
+          );
+        }
+
+        filteredStudents.forEach((student, index) => {
+          const today = new Date().toISOString().split('T')[0];
+          let todayAttendance = null;
+          
+          if (currentSubject && student.attendance && student.attendance[currentSubject]) {
+            todayAttendance = student.attendance[currentSubject][today];
+          } else if (student.attendance && student.attendance[today]) {
+            todayAttendance = student.attendance[today];
+          }
+          
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${student.name}</td>
+            <td>${student.email}</td>
+            <td>${student.userPrnNo}</td>
+            <td>${student.subjects ? student.subjects.join(', ') : ''}</td>
+            <td>
+              <button class="btn btn-sm attendance-btn ${todayAttendance === 'present' ? 'present' : 'btn-outline-success'}" 
+                      onclick="markAttendance('${student.id}', 'present')">
+                Present
+              </button>
+              <button class="btn btn-sm attendance-btn ${todayAttendance === 'absent' ? 'absent' : 'btn-outline-danger'}" 
+                      onclick="markAttendance('${student.id}', 'absent')">
+                Absent
+              </button>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-success" onclick="viewExamMarks('${student.id}')">
+                <i class="fas fa-graduation-cap"></i> View Marks
+              </button>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="editStudent('${student.id}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteStudent('${student.id}')">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button class="btn btn-sm btn-info" onclick="viewAttendanceHistory('${student.id}')">
+                <i class="fas fa-history"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Update statistics based on current subject
+      function updateStatistics() {
+        const today = new Date().toISOString().split('T')[0];
+        let presentCount = 0;
+        let absentCount = 0;
+        let relevantStudents = students;
+
+        // Filter students by current subject if one is selected
+        if (currentSubject) {
+          relevantStudents = students.filter(student => 
+            student.subjects && student.subjects.includes(currentSubject)
+          );
+        }
+
+        relevantStudents.forEach(student => {
+          let todayAttendance = null;
+          
+          if (currentSubject && student.attendance && student.attendance[currentSubject]) {
+            todayAttendance = student.attendance[currentSubject][today];
+          } else if (student.attendance && student.attendance[today]) {
+            todayAttendance = student.attendance[today];
+          }
+
+          if (todayAttendance === 'present') {
+            presentCount++;
+          } else if (todayAttendance === 'absent') {
+            absentCount++;
+          }
+        });
+
+        document.getElementById("totalStudents").textContent = relevantStudents.length;
+        document.getElementById("presentToday").textContent = presentCount;
+        document.getElementById("absentToday").textContent = absentCount;
+        
+        const attendanceRate = relevantStudents.length > 0 ? Math.round((presentCount / relevantStudents.length) * 100) : 0;
+        document.getElementById("attendanceRate").textContent = attendanceRate + "%";
+      }
+
+      // Mark attendance for a student (subject-specific)
+      window.markAttendance = async function(studentId, status) {
+        try {
+          const studentRef = doc(db, "students", studentId);
+          const today = new Date().toISOString().split('T')[0];
+          
+          let updateData = {};
+          
+          if (currentSubject) {
+            // Subject-specific attendance
+            updateData[`attendance.${currentSubject}.${today}`] = status;
+          } else {
+            // General attendance (fallback)
+            updateData[`attendance.${today}`] = status;
+          }
+          
+          await updateDoc(studentRef, updateData);
+
+          // Update local data
+          const studentIndex = students.findIndex(s => s.id === studentId);
+          if (studentIndex !== -1) {
+            if (!students[studentIndex].attendance) {
+              students[studentIndex].attendance = {};
+            }
+            
+            if (currentSubject) {
+              if (!students[studentIndex].attendance[currentSubject]) {
+                students[studentIndex].attendance[currentSubject] = {};
+              }
+              students[studentIndex].attendance[currentSubject][today] = status;
+            } else {
+              students[studentIndex].attendance[today] = status;
+            }
+          }
+
+          displayStudents();
+          updateStatistics();
+          alert(`Attendance marked as ${status} successfully!`);
+        } catch (error) {
+          console.error("Error marking attendance:", error);
+          alert("Error marking attendance. Please try again.");
+        }
+      };
+
+      // Mark all students present (subject-specific)
+      window.markAllPresent = async function() {
+        if (!confirm("Mark all students as present for today?")) {
+          return;
+        }
+
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          let relevantStudents = students;
+          
+          // Filter students by current subject if one is selected
+          if (currentSubject) {
+            relevantStudents = students.filter(student => 
+              student.subjects && student.subjects.includes(currentSubject)
+            );
+          }
+          
+          for (const student of relevantStudents) {
+            const studentRef = doc(db, "students", student.id);
+            let updateData = {};
+            
+            if (currentSubject) {
+              updateData[`attendance.${currentSubject}.${today}`] = 'present';
+            } else {
+              updateData[`attendance.${today}`] = 'present';
+            }
+            
+            await updateDoc(studentRef, updateData);
+
+            // Update local data
+            if (!student.attendance) {
+              student.attendance = {};
+            }
+            
+            if (currentSubject) {
+              if (!student.attendance[currentSubject]) {
+                student.attendance[currentSubject] = {};
+              }
+              student.attendance[currentSubject][today] = 'present';
+            } else {
+              student.attendance[today] = 'present';
+            }
+          }
+
+          displayStudents();
+          updateStatistics();
+          alert("All students marked as present!");
+        } catch (error) {
+          console.error("Error marking all present:", error);
+          alert("Error marking all students present. Please try again.");
+        }
+      };
+
+      // Add new student
+      window.addNewStudent = async function() {
+        const name = document.getElementById("newStudentName").value;
+        const email = document.getElementById("newStudentEmail").value;
+        const prn = document.getElementById("newStudentPrn").value;
+        const subjects = document.getElementById("newStudentSubjects").value.split(',').map(s => s.trim());
+        const password = document.getElementById("newStudentPassword").value;
+
+        if (!name || !email || !prn || subjects.length === 0 || !password) {
+          alert("Please fill in all fields.");
+          return;
+        }
+
+        try {
+          // Create user in Firebase Auth
+          const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js');
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          // Save student data to Firestore
+          await setDoc(doc(db, "students", user.uid), {
+            name: name,
+            email: email,
+            userPrnNo: prn,
+            role: "student",
+            attendance: {},
+            subjects: subjects
+          });
+
+          // Close modal and reload
+          const modal = bootstrap.Modal.getInstance(document.getElementById("addStudentModal"));
+          modal.hide();
+          document.getElementById("addStudentForm").reset();
+          
+          loadStudents();
+          alert("Student added successfully!");
+        } catch (error) {
+          console.error("Error adding student:", error);
+          alert(`Error adding student: ${error.message}`);
+        }
+      };
+
+      // Edit student
+      window.editStudent = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (student) {
+          document.getElementById("editStudentId").value = studentId;
+          document.getElementById("editStudentName").value = student.name;
+          document.getElementById("editStudentEmail").value = student.email;
+          document.getElementById("editStudentPrn").value = student.userPrnNo;
+          document.getElementById("editStudentSubjects").value = student.subjects ? student.subjects.join(', ') : '';
+          
+          const modal = new bootstrap.Modal(document.getElementById("editStudentModal"));
+          modal.show();
+        }
+      };
+
+      // Update student
+      window.updateStudent = async function() {
+        const studentId = document.getElementById("editStudentId").value;
+        const name = document.getElementById("editStudentName").value;
+        const email = document.getElementById("editStudentEmail").value;
+        const prn = document.getElementById("editStudentPrn").value;
+        const subjects = document.getElementById("editStudentSubjects").value.split(',').map(s => s.trim());
+
+        try {
+          const studentRef = doc(db, "students", studentId);
+          await updateDoc(studentRef, {
+            name: name,
+            email: email,
+            userPrnNo: prn,
+            subjects: subjects
+          });
+
+          // Update local data
+          const studentIndex = students.findIndex(s => s.id === studentId);
+          if (studentIndex !== -1) {
+            students[studentIndex].name = name;
+            students[studentIndex].email = email;
+            students[studentIndex].userPrnNo = prn;
+            students[studentIndex].subjects = subjects;
+          }
+
+          const modal = bootstrap.Modal.getInstance(document.getElementById("editStudentModal"));
+          modal.hide();
+          
+          displayStudents();
+          alert("Student updated successfully!");
+        } catch (error) {
+          console.error("Error updating student:", error);
+          alert("Error updating student. Please try again.");
+        }
+      };
+
+      // Delete student
+      window.deleteStudent = async function(studentId) {
+        if (!confirm("Are you sure you want to delete this student?")) {
+          return;
+        }
+
+        try {
+          await deleteDoc(doc(db, "students", studentId));
+          
+          // Remove from local array
+          students = students.filter(s => s.id !== studentId);
+          
+          displayStudents();
+          updateStatistics();
+          alert("Student deleted successfully!");
+        } catch (error) {
+          console.error("Error deleting student:", error);
+          alert("Error deleting student. Please try again.");
+        }
+      };
+
+      // Populate student select for reports
+      function populateStudentSelect() {
+        const select = document.getElementById("reportStudent");
+        select.innerHTML = '<option value="">All Students</option>';
+        
+        students.forEach(student => {
+          const option = document.createElement("option");
+          option.value = student.id;
+          option.textContent = student.name;
+          select.appendChild(option);
+        });
+      }
+
+      // Load attendance report
+      window.loadAttendanceReport = function() {
+        const date = document.getElementById("reportDate").value;
+        const studentId = document.getElementById("reportStudent").value;
+        
+        if (studentId) {
+          loadStudentAttendance();
+        } else {
+          loadAllAttendance(date);
+        }
+      };
+
+      // Load all students' attendance for a date
+      function loadAllAttendance(date) {
+        const tbody = document.getElementById("attendanceReportBody");
+        tbody.innerHTML = "";
+
+        students.forEach(student => {
+          const status = student.attendance && student.attendance[date] ? student.attendance[date] : 'Not Marked';
+          const statusClass = status === 'present' ? 'text-success' : status === 'absent' ? 'text-danger' : 'text-muted';
+          
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${student.name}</td>
+            <td>${student.userPrnNo}</td>
+            <td class="${statusClass}">${status.toUpperCase()}</td>
+            <td>${date}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Load specific student's attendance
+      window.loadStudentAttendance = function() {
+        const studentId = document.getElementById("reportStudent").value;
+        const date = document.getElementById("reportDate").value;
+        
+        if (!studentId) {
+          loadAllAttendance(date);
+          return;
+        }
+
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+
+        const tbody = document.getElementById("attendanceReportBody");
+        tbody.innerHTML = "";
+
+        // Show last 30 days of attendance
+        for (let i = 29; i >= 0; i--) {
+          const reportDate = new Date();
+          reportDate.setDate(reportDate.getDate() - i);
+          const dateStr = reportDate.toISOString().split('T')[0];
+          
+          const status = student.attendance && student.attendance[dateStr] ? student.attendance[dateStr] : 'Not Marked';
+          const statusClass = status === 'present' ? 'text-success' : status === 'absent' ? 'text-danger' : 'text-muted';
+          
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${student.name}</td>
+            <td>${student.userPrnNo}</td>
+            <td class="${statusClass}">${status.toUpperCase()}</td>
+            <td>${dateStr}</td>
+          `;
+          tbody.appendChild(row);
+        }
+      };
+
+      // View attendance history for a student
+      window.viewAttendanceHistory = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (student) {
+          document.getElementById("reportStudent").value = studentId;
+          loadStudentAttendance();
+          
+          const modal = new bootstrap.Modal(document.getElementById("attendanceReportModal"));
+          modal.show();
+        }
+      };
+
+      // Filter students by exam type
+      window.filterStudentsByExamType = function() {
+        const selectedExamType = document.getElementById("examTypeFilter").value;
+        displayStudentsByExamType(selectedExamType);
+      };
+
+      // Display students based on exam type
+      function displayStudentsByExamType(examType) {
+        const tbody = document.getElementById("studentsTableBody");
+        tbody.innerHTML = "";
+
+        let filteredStudents = students;
+        if (examType) {
+          filteredStudents = students.filter(student => 
+            student.subjects && student.subjects.includes(examType)
+          );
+        }
+
+        filteredStudents.forEach((student, index) => {
+          const today = new Date().toISOString().split('T')[0];
+          let todayAttendance = null;
+          
+          if (currentSubject && student.attendance && student.attendance[currentSubject]) {
+            todayAttendance = student.attendance[currentSubject][today];
+          } else if (student.attendance && student.attendance[today]) {
+            todayAttendance = student.attendance[today];
+          }
+          
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${student.name}</td>
+            <td>${student.email}</td>
+            <td>${student.userPrnNo}</td>
+            <td>${student.subjects ? student.subjects.join(', ') : ''}</td>
+            <td>
+              <button class="btn btn-sm attendance-btn ${todayAttendance === 'present' ? 'present' : 'btn-outline-success'}" 
+                      onclick="markAttendance('${student.id}', 'present')">
+                Present
+              </button>
+              <button class="btn btn-sm attendance-btn ${todayAttendance === 'absent' ? 'absent' : 'btn-outline-danger'}" 
+                      onclick="markAttendance('${student.id}', 'absent')">
+                Absent
+              </button>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="editStudent('${student.id}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deleteStudent('${student.id}')">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button class="btn btn-sm btn-info" onclick="viewAttendanceHistory('${student.id}')">
+                <i class="fas fa-history"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Load students for exam marks
+      async function loadStudentsForExam() {
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+        const manualMarkEntry = document.getElementById("manualMarkEntry");
+        
+        // Show manual mark entry section when subject is selected
+        if (selectedSubject) {
+          manualMarkEntry.style.display = 'block';
+        } else {
+          manualMarkEntry.style.display = 'none';
+        }
+        
+        if (!selectedSubject || !selectedExam) {
+          document.getElementById("examInstructions").style.display = "none";
+          document.getElementById("examStudentsList").style.display = "none";
+          document.getElementById("noStudentsMessage").style.display = "none";
+          return;
+        }
+        
+        document.getElementById("examInstructions").style.display = "block";
+        document.getElementById("selectedSubjectName").textContent = selectedSubject;
+        
+        // Show all students (removed subject filtering)
+        const allStudents = students;
+        
+        if (allStudents.length === 0) {
+          document.getElementById("examStudentsList").style.display = "none";
+          document.getElementById("noStudentsMessage").style.display = "block";
+          return;
+        }
+        
+        document.getElementById("examStudentsList").style.display = "block";
+        document.getElementById("noStudentsMessage").style.display = "none";
+        document.getElementById("studentCount").textContent = `${allStudents.length} students`;
+        
+        const tbody = document.getElementById("examMarksTableBody");
+        tbody.innerHTML = "";
+        
+        allStudents.forEach((student, index) => {
+          // Check if student has marks for this subject and exam
+          let currentMark = "Not Marked";
+          let status = "Pending";
+          let statusClass = "badge bg-warning";
+          let markInputValue = "";
+          let obtainedMarkInputValue = "";
+          
+          if (student.examMarks && 
+              student.examMarks[selectedSubject] && 
+              student.examMarks[selectedSubject][selectedExam]) {
+            
+            const markData = student.examMarks[selectedSubject][selectedExam];
+            
+            // Handle both old format (direct number) and new format (object with mark property)
+            if (typeof markData === 'object' && markData.mark !== undefined) {
+              currentMark = `${markData.mark}/20`;
+              markInputValue = markData.mark;
+              obtainedMarkInputValue = markData.obtainedMarks || markData.mark;
+              status = "Marked";
+              statusClass = "badge bg-success";
+            } else if (typeof markData === 'number') {
+              currentMark = `${markData}/20`;
+              markInputValue = markData;
+              obtainedMarkInputValue = markData;
+              status = "Marked";
+              statusClass = "badge bg-success";
+            }
+          }
+          
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                  <span class="text-white fw-bold">${student.name.charAt(0).toUpperCase()}</span>
+                </div>
+                <div>
+                  <div class="fw-bold">${student.name}</div>
+                  <small class="text-muted">${student.email}</small>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge bg-info">${student.userPrnNo}</span></td>
+            <td>
+              <div class="input-group">
+                <label class="form-label small mb-1">Enter Marks:</label>
+                <input type="number" class="form-control form-control-sm" 
+                       id="mark_${student.id}" 
+                       name="marks"
+                       min="0" max="20" step="0.5" 
+                       placeholder="Enter marks (0-20)" 
+                       value="${markInputValue}"
+                       onchange="updateExamSummary()">
+                <span class="input-group-text">/ 20</span>
+              </div>
+            </td>
+            <td>
+              <div class="input-group">
+                <label class="form-label small mb-1">Enter Obtained Marks:</label>
+                <input type="number" class="form-control form-control-sm" 
+                       id="obtained_${student.id}" 
+                       name="obtainedMarks"
+                       min="0" max="20" step="0.5" 
+                       placeholder="Enter obtained marks (0-20)" 
+                       value="${obtainedMarkInputValue}"
+                       onchange="updateExamSummary()">
+                <span class="input-group-text">/ 20</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge ${statusClass}">${currentMark}</span>
+            </td>
+            <td>
+              <span class="${statusClass}">${status}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="submitIndividualMark('${student.id}')" title="Submit Individual Mark">
+                <i class="fas fa-upload"></i> Submit
+              </button>
+              <button class="btn btn-sm btn-success ms-1" onclick="quickMarkEntry('${student.id}')" title="Quick Mark Entry">
+                <i class="fas fa-edit"></i> Quick
+              </button>
+              <button class="btn btn-sm btn-info ms-1" onclick="viewStudentMarks('${student.id}')" title="View All Marks">
+                <i class="fas fa-eye"></i> View
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+        
+        updateExamSummary();
+      }
+      
+      // Helper function to fill all students with same marks
+      function fillAllWithSameMarks() {
+        const marks = prompt('Enter marks out of 20:');
+        if (marks === null || marks === '') return;
+        
+        const obtainedMarks = prompt('Enter obtained marks:');
+        if (obtainedMarks === null || obtainedMarks === '') return;
+        
+        const markInputs = document.querySelectorAll('input[name="marks"]');
+        const obtainedInputs = document.querySelectorAll('input[name="obtainedMarks"]');
+        
+        markInputs.forEach(input => input.value = marks);
+        obtainedInputs.forEach(input => input.value = obtainedMarks);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Marks Filled!',
+          text: `All students filled with ${marks}/20 marks and ${obtainedMarks} obtained marks.`
+        });
+      }
+      
+      // Helper function to clear all marks
+      function clearAllMarks() {
+        const markInputs = document.querySelectorAll('input[name="marks"], input[name="obtainedMarks"]');
+        markInputs.forEach(input => input.value = '');
+        
+        Swal.fire({
+          icon: 'info',
+          title: 'Marks Cleared!',
+          text: 'All mark fields have been cleared.'
+        });
+      }
+      
+      // Upload marks from CSV file
+      function uploadMarksFile() {
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+        
+        if (!selectedSubject || !selectedExam) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Selection Required',
+            text: 'Please select both subject and exam type first.'
+          });
+          return;
+        }
+        
+        // Create file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.csv';
+        fileInput.style.display = 'none';
+        
+        fileInput.onchange = function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            try {
+              const csvData = event.target.result;
+              const lines = csvData.split('\n');
+              let successCount = 0;
+              let errorCount = 0;
+              
+              // Skip header row
+              for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const columns = line.split(',');
+                if (columns.length >= 3) {
+                  const studentId = columns[0].trim();
+                  const marks = parseFloat(columns[1].trim());
+                  const obtainedMarks = parseFloat(columns[2].trim());
+                  
+                  if (!isNaN(marks) && !isNaN(obtainedMarks) && marks >= 0 && marks <= 20 && obtainedMarks >= 0 && obtainedMarks <= 20) {
+                    const markInput = document.getElementById(`mark_${studentId}`);
+                    const obtainedInput = document.getElementById(`obtained_${studentId}`);
+                    
+                    if (markInput && obtainedInput) {
+                      markInput.value = marks;
+                      obtainedInput.value = obtainedMarks;
+                      successCount++;
+                    } else {
+                      errorCount++;
+                    }
+                  } else {
+                    errorCount++;
+                  }
+                }
+              }
+              
+              updateExamSummary();
+              
+              Swal.fire({
+                icon: 'success',
+                title: 'File Uploaded!',
+                html: `
+                  <p>Successfully processed ${successCount} entries</p>
+                  ${errorCount > 0 ? `<p class="text-warning">${errorCount} entries had errors</p>` : ''}
+                  <small class="text-muted">CSV format: StudentID, Marks, ObtainedMarks</small>
+                `
+              });
+              
+            } catch (error) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Upload Failed',
+                text: 'Error processing the CSV file. Please check the format.'
+              });
+            }
+          };
+          
+          reader.readAsText(file);
+        };
+        
+        document.body.appendChild(fileInput);
+        fileInput.click();
+        document.body.removeChild(fileInput);
+      }
+      
+      // Download marks template
+      function downloadMarksTemplate() {
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+        
+        if (!selectedSubject || !selectedExam) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Selection Required',
+            text: 'Please select both subject and exam type first.'
+          });
+          return;
+        }
+        
+        // Create CSV template
+        let csvContent = "StudentID,Marks,ObtainedMarks\n";
+        
+        // Add sample data for all students
+        const allStudents = students;
+        allStudents.forEach(student => {
+          csvContent += `${student.id},,,\n`;
+        });
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `marks_template_${selectedSubject}_${selectedExam}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Template Downloaded!',
+          html: `
+            <p>CSV template has been downloaded.</p>
+            <small class="text-muted">Format: StudentID, Marks, ObtainedMarks</small>
+            <br><small class="text-muted">Fill in the marks and upload the file.</small>
+          `,
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
+
+      // Update exam summary
+      window.updateExamSummary = function() {
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+        
+        if (!selectedSubject || !selectedExam) return;
+        
+        // Use all students (removed subject filtering)
+        const allStudents = students;
+        
+        let totalMarks = 0;
+        let totalObtainedMarks = 0;
+        let markedCount = 0;
+        let validMarks = [];
+        let validObtainedMarks = [];
+        
+        allStudents.forEach(student => {
+          const markInput = document.getElementById(`mark_${student.id}`);
+          const obtainedMarkInput = document.getElementById(`obtained_${student.id}`);
+          
+          if (markInput && markInput.value !== "" && obtainedMarkInput && obtainedMarkInput.value !== "") {
+            const mark = parseFloat(markInput.value);
+            const obtainedMarks = parseFloat(obtainedMarkInput.value);
+            
+            if (!isNaN(mark) && mark >= 0 && mark <= 20 && !isNaN(obtainedMarks) && obtainedMarks >= 0 && obtainedMarks <= 20) {
+              totalMarks += mark;
+              totalObtainedMarks += obtainedMarks;
+              markedCount++;
+              validMarks.push(mark);
+              validObtainedMarks.push(obtainedMarks);
+            }
+          }
+        });
+        
+        const average = markedCount > 0 ? (totalMarks / markedCount).toFixed(1) : 0;
+        const averageObtained = markedCount > 0 ? (totalObtainedMarks / markedCount).toFixed(1) : 0;
+        const highest = validMarks.length > 0 ? Math.max(...validMarks) : 0;
+        const lowest = validMarks.length > 0 ? Math.min(...validMarks) : 0;
+        const completionRate = ((markedCount / allStudents.length) * 100).toFixed(1);
+        
+        document.getElementById("examSummary").innerHTML = `
+          <div class="row">
+            <div class="col-6">
+              <strong>Marked:</strong> ${markedCount}/${allStudents.length} (${completionRate}%)<br>
+              <strong>Average:</strong> ${average}/20<br>
+              <strong>Avg Obtained:</strong> ${averageObtained}/20
+            </div>
+            <div class="col-6">
+              <strong>Highest:</strong> ${highest}/20<br>
+              <strong>Lowest:</strong> ${lowest}/20
+            </div>
+          </div>
+        `;
+      };
+
+      // Save all exam marks
+      window.saveExamMarks = async function() {
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+        
+        if (!selectedSubject || !selectedExam) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Selection Required',
+            text: 'Please select both subject and exam type first.'
+          });
+          return;
+        }
+        
+        // Use all students (removed subject filtering)
+        const allStudents = students;
+        
+        let marksToSave = [];
+        let hasValidMarks = false;
+        
+        allStudents.forEach(student => {
+          const markInput = document.getElementById(`mark_${student.id}`);
+          const obtainedMarkInput = document.getElementById(`obtained_${student.id}`);
+          
+          if (markInput && markInput.value !== "" && obtainedMarkInput && obtainedMarkInput.value !== "") {
+            const mark = parseFloat(markInput.value);
+            const obtainedMarks = parseFloat(obtainedMarkInput.value);
+            
+            if (!isNaN(mark) && mark >= 0 && mark <= 20 && !isNaN(obtainedMarks) && obtainedMarks >= 0 && obtainedMarks <= 20) {
+              marksToSave.push({
+                studentId: student.id,
+                studentName: student.name,
+                mark: mark,
+                obtainedMarks: obtainedMarks
+              });
+              hasValidMarks = true;
+            }
+          }
+        });
+        
+        if (!hasValidMarks) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'No Marks to Save',
+            text: 'Please enter at least one valid mark before saving.'
+          });
+          return;
+        }
+        
+        // Confirm before saving
+        const result = await Swal.fire({
+          icon: 'question',
+          title: 'Save Exam Marks?',
+          text: `Save marks for ${marksToSave.length} students in ${selectedSubject} (${selectedExam})?`,
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Save All',
+          cancelButtonText: 'Cancel'
+        });
+        
+        if (!result.isConfirmed) return;
+        
+        try {
+          // Show loading
+          Swal.fire({
+            title: 'Saving Marks...',
+            text: 'Please wait while we save the exam marks.',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          // Save marks to Firestore
+          const batch = writeBatch(db);
+          
+          marksToSave.forEach(({ studentId, mark, obtainedMarks }) => {
+            const studentRef = doc(db, "students", studentId);
+            batch.update(studentRef, {
+              examMarks: {
+                [selectedSubject]: {
+                  [selectedExam]: {
+                    mark: mark,
+                    obtainedMarks: obtainedMarks,
+                    submittedAt: new Date().toISOString(),
+                    submittedBy: currentUser.email
+                  }
+                }
+              }
+            });
+          });
+          
+          await batch.commit();
+          
+          // Update local data
+          marksToSave.forEach(({ studentId, mark, obtainedMarks }) => {
+            const studentIndex = students.findIndex(s => s.id === studentId);
+            if (studentIndex !== -1) {
+              if (!students[studentIndex].examMarks) {
+                students[studentIndex].examMarks = {};
+              }
+              if (!students[studentIndex].examMarks[selectedSubject]) {
+                students[studentIndex].examMarks[selectedSubject] = {};
+              }
+              students[studentIndex].examMarks[selectedSubject][selectedExam] = {
+                mark: mark,
+                obtainedMarks: obtainedMarks,
+                submittedAt: new Date().toISOString(),
+                submittedBy: currentUser.email
+              };
+            }
+          });
+          
+          // Refresh display
+          loadStudentsForExam();
+          
+          // Show success
+          Swal.fire({
+            icon: 'success',
+            title: 'Marks Saved Successfully!',
+            text: `${marksToSave.length} student marks saved for ${selectedSubject} (${selectedExam})`,
+            timer: 3000,
+            showConfirmButton: false
+          });
+          
+        } catch (error) {
+          console.error("Error saving exam marks:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Saving Marks',
+            text: 'Failed to save exam marks. Please try again.'
+          });
+        }
+      };
+
+      // Clear all exam marks
+      window.clearExamMarks = function() {
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+        
+        if (!selectedSubject || !selectedExam) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Selection Required',
+            text: 'Please select both subject and exam type first.'
+          });
+          return;
+        }
+        
+        Swal.fire({
+          icon: 'warning',
+          title: 'Clear All Marks?',
+          text: 'This will clear all entered marks for this subject and exam. This action cannot be undone.',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Clear All',
+          cancelButtonText: 'Cancel',
+          confirmButtonColor: '#d33'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Use all students (removed subject filtering)
+            const allStudents = students;
+            
+            allStudents.forEach(student => {
+              const markInput = document.getElementById(`mark_${student.id}`);
+              const obtainedMarkInput = document.getElementById(`obtained_${student.id}`);
+              if (markInput) {
+                markInput.value = "";
+              }
+              if (obtainedMarkInput) {
+                obtainedMarkInput.value = "";
+              }
+            });
+            
+            updateExamSummary();
+            
+            Swal.fire({
+              icon: 'success',
+              title: 'Marks Cleared',
+              text: 'All marks have been cleared.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          }
+        });
+      };
+
+      // Populate exam subject dropdown
+      function populateExamSubjectDropdown() {
+        const examSubject = document.getElementById("examSubject");
+        examSubject.innerHTML = '<option value="">-- Choose Your Teaching Subject --</option>';
+        
+        if (teacherData && teacherData.subjects) {
+          teacherData.subjects.forEach(subject => {
+            const option = document.createElement("option");
+            option.value = subject;
+            option.textContent = `📚 ${subject}`;
+            examSubject.appendChild(option);
+          });
+        }
+      }
+
+      // View exam marks for a specific student
+      window.viewExamMarks = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+
+        document.getElementById("examStudentName").textContent = student.name;
+        displayStudentExamMarks(student);
+        
+        const modal = new bootstrap.Modal(document.getElementById("viewExamMarksModal"));
+        modal.show();
+      };
+
+      // Display student exam marks
+      function displayStudentExamMarks(student) {
+        const tbody = document.getElementById("viewExamMarksTableBody");
+        tbody.innerHTML = "";
+
+        if (!student.subjects || student.subjects.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center">No subjects assigned</td></tr>';
+          return;
+        }
+
+        student.subjects.forEach(subject => {
+          const row = document.createElement("tr");
+          
+          const sectional1 = student.examMarks && student.examMarks[subject] && student.examMarks[subject].sectional1 ? 
+            student.examMarks[subject].sectional1 : "-";
+          const sectional2 = student.examMarks && student.examMarks[subject] && student.examMarks[subject].sectional2 ? 
+            student.examMarks[subject].sectional2 : "-";
+          const sectional3 = student.examMarks && student.examMarks[subject] && student.examMarks[subject].sectional3 ? 
+            student.examMarks[subject].sectional3 : "-";
+          
+          // Calculate average
+          let average = "-";
+          const marks = [sectional1, sectional2, sectional3].filter(mark => mark !== "-");
+          if (marks.length > 0) {
+            average = (marks.reduce((sum, mark) => sum + parseFloat(mark), 0) / marks.length).toFixed(1);
+          }
+
+          row.innerHTML = `
+            <td><strong>${subject}</strong></td>
+            <td>${sectional1 !== '-' ? sectional1 + '/20' : '-'}</td>
+            <td>${sectional2 !== '-' ? sectional2 + '/20' : '-'}</td>
+            <td>${sectional3 !== '-' ? sectional3 + '/20' : '-'}</td>
+            <td><span class="badge bg-primary">${average}/20</span></td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Individual Student Mark Submission
+      window.submitIndividualMark = async function(studentId = null) {
+        if (studentId) {
+          // Opening modal for individual student
+          const student = students.find(s => s.id === studentId);
+          if (!student) return;
+
+          const selectedSubject = document.getElementById("examSubject").value;
+          const selectedExam = document.getElementById("examType").value;
+
+          if (!selectedSubject || !selectedExam) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Selection Required',
+              text: 'Please select both subject and exam type first.'
+            });
+            return;
+          }
+
+          try {
+            // Get teacher information
+            const teacherRef = doc(db, "teachers", currentUser.uid);
+            const teacherDoc = await getDoc(teacherRef);
+            const teacherData = teacherDoc.exists() ? teacherDoc.data() : {};
+
+            // Populate modal with student info
+            document.getElementById("individualStudentName").textContent = student.name;
+            document.getElementById("individualStudentPrn").textContent = student.userPrnNo;
+            document.getElementById("individualStudentSubject").textContent = selectedSubject;
+            document.getElementById("individualStudentExam").textContent = selectedExam;
+
+            // Populate teacher info
+            document.getElementById("individualTeacherName").textContent = teacherData.name || currentUser.email;
+            document.getElementById("individualTeacherSubject").textContent = selectedSubject;
+
+            // Check if student has current marks
+            let currentMark = "Not Marked";
+            let currentMarkClass = "bg-secondary";
+            
+            if (student.examMarks && student.examMarks[selectedSubject] && student.examMarks[selectedSubject][selectedExam]) {
+              const markData = student.examMarks[selectedSubject][selectedExam];
+              if (typeof markData === 'object' && markData.mark !== undefined) {
+                currentMark = `${markData.mark}/20`;
+              } else if (typeof markData === 'number') {
+                currentMark = `${markData}/20`;
+              }
+              currentMarkClass = "bg-success";
+            }
+
+            document.getElementById("currentMarkDisplay").innerHTML = `<span class="badge ${currentMarkClass}">${currentMark}</span>`;
+
+            // Clear previous inputs
+            document.getElementById("individualMarkInput").value = "";
+            document.getElementById("individualMarkRemarks").value = "";
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById("individualMarkModal"));
+            modal.show();
+            return;
+          } catch (error) {
+            console.error("Error loading teacher data:", error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to load teacher information. Please try again.'
+            });
+          }
+        }
+
+        // Submitting the mark
+        const mark = document.getElementById("individualMarkInput").value;
+        const obtainedMarks = document.getElementById("individualObtainedMarks").value;
+        const remarks = document.getElementById("individualMarkRemarks").value;
+        const studentName = document.getElementById("individualStudentName").textContent;
+
+        if (!mark || mark < 0 || mark > 20) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Mark',
+            text: 'Please enter a valid mark between 0 and 20.'
+          });
+          return;
+        }
+
+        if (!obtainedMarks || obtainedMarks < 0 || obtainedMarks > 20) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Obtained Marks',
+            text: 'Please enter valid obtained marks between 0 and 20.'
+          });
+          return;
+        }
+
+        try {
+          // Find the student by name (since we don't have ID in this context)
+          const student = students.find(s => s.name === studentName);
+          if (!student) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Student Not Found',
+              text: 'Student not found. Please try again.'
+            });
+            return;
+          }
+
+          const selectedSubject = document.getElementById("examSubject").value;
+          const selectedExam = document.getElementById("examType").value;
+
+          const studentRef = doc(db, "students", student.id);
+          
+          // Prepare update data
+          const updateData = {
+            examMarks: {
+              [selectedSubject]: {
+                [selectedExam]: {
+                  mark: parseFloat(mark),
+                  obtainedMarks: parseFloat(obtainedMarks),
+                  remarks: remarks,
+                  submittedAt: new Date().toISOString(),
+                  submittedBy: currentUser.email
+                }
+              }
+            }
+          };
+
+          await updateDoc(studentRef, updateData);
+
+          // Update local data
+          const studentIndex = students.findIndex(s => s.id === student.id);
+          if (studentIndex !== -1) {
+            if (!students[studentIndex].examMarks) {
+              students[studentIndex].examMarks = {};
+            }
+            if (!students[studentIndex].examMarks[selectedSubject]) {
+              students[studentIndex].examMarks[selectedSubject] = {};
+            }
+            students[studentIndex].examMarks[selectedSubject][selectedExam] = {
+              mark: parseFloat(mark),
+              obtainedMarks: parseFloat(obtainedMarks),
+              remarks: remarks,
+              submittedAt: new Date().toISOString(),
+              submittedBy: currentUser.email
+            };
+          }
+
+          // Refresh the display
+          loadStudentsForExam();
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Mark Submitted Successfully!',
+            text: `${student.name} - ${mark}/20 marks (Obtained: ${obtainedMarks}/20) submitted for ${selectedSubject} (${selectedExam})`,
+            timer: 3000,
+            showConfirmButton: false
+          });
+          
+          // Close modal
+          const modal = bootstrap.Modal.getInstance(document.getElementById("individualMarkModal"));
+          modal.hide();
+          
+        } catch (error) {
+          console.error("Error submitting individual mark:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to submit mark. Please try again.'
+          });
+        }
+      };
+
+      // View individual student marks
+      window.viewStudentMarks = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+
+        let marksHtml = '<div class="table-responsive"><table class="table table-bordered">';
+        marksHtml += '<thead class="table-dark"><tr><th>Subject</th><th>Sectional 1</th><th>Sectional 2</th><th>Sectional 3</th><th>Average</th></tr></thead><tbody>';
+
+        const subjects = student.subjects || [];
+        subjects.forEach(subject => {
+          const sectional1 = student.examMarks?.[subject]?.sectional1?.mark || student.examMarks?.[subject]?.sectional1 || '-';
+          const sectional2 = student.examMarks?.[subject]?.sectional2?.mark || student.examMarks?.[subject]?.sectional2 || '-';
+          const sectional3 = student.examMarks?.[subject]?.sectional3?.mark || student.examMarks?.[subject]?.sectional3 || '-';
+
+          // Calculate average
+          let average = '-';
+          const marks = [sectional1, sectional2, sectional3].filter(mark => mark !== '-');
+          if (marks.length > 0) {
+            average = (marks.reduce((sum, mark) => sum + parseFloat(mark), 0) / marks.length).toFixed(1);
+          }
+
+          marksHtml += `<tr>
+            <td><strong>${subject}</strong></td>
+            <td>${sectional1 !== '-' ? sectional1 + '/20' : '-'}</td>
+            <td>${sectional2 !== '-' ? sectional2 + '/20' : '-'}</td>
+            <td>${sectional3 !== '-' ? sectional3 + '/20' : '-'}</td>
+            <td><span class="badge bg-primary">${average}/20</span></td>
+          </tr>`;
+        });
+
+        marksHtml += '</tbody></table></div>';
+
+        Swal.fire({
+          title: `${student.name}'s Exam Marks`,
+          html: marksHtml,
+          width: '800px',
+          confirmButtonText: 'Close',
+          confirmButtonColor: '#3085d6'
+        });
+      };
+
+      // Open exam marks modal
+      window.openExamMarksModal = async function() {
+        try {
+          // Show loading state
+          Swal.fire({
+            title: 'Loading Teacher Data...',
+            text: 'Please wait while we retrieve your information from Firestore.',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          // Get current teacher's information from Firestore
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          const teacherDoc = await getDoc(teacherRef);
+          
+          // Close loading
+          Swal.close();
+          
+          if (!teacherDoc.exists()) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Teacher Profile Not Found',
+              text: 'Please complete your teacher profile first by clicking "Update Profile" in the header.',
+              confirmButtonColor: '#3085d6',
+              confirmButtonText: 'Update Profile'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                openTeacherProfileModal();
+              }
+            });
+            return;
+          }
+          
+          const teacherData = teacherDoc.data();
+          console.log("Teacher data retrieved from Firestore:", teacherData);
+          
+          // Display comprehensive teacher information
+          document.getElementById("teacherNameDisplay").textContent = teacherData.name || 'Not Set';
+          document.getElementById("teacherEmailDisplay").textContent = currentUser.email;
+          document.getElementById("teacherUserId").textContent = currentUser.uid;
+          
+          // Display last updated timestamp
+          const lastUpdated = teacherData.updatedAt ? 
+            new Date(teacherData.updatedAt).toLocaleString() : 
+            'Not available';
+          document.getElementById("teacherLastUpdated").textContent = lastUpdated;
+          
+          // Get teacher's subjects from Firestore
+          const teacherSubjects = teacherData.subjects || [];
+          console.log("Teacher subjects from Firestore:", teacherSubjects);
+          
+          // Display teacher's subjects with better formatting
+          const subjectsDisplay = document.getElementById("teacherSubjectsDisplay");
+          if (teacherSubjects.length > 0) {
+            subjectsDisplay.innerHTML = teacherSubjects.map(subject => 
+              `<span class="badge bg-success me-1 mb-1">${subject}</span>`
+            ).join('');
+          } else {
+            subjectsDisplay.innerHTML = '<span class="badge bg-warning">No subjects assigned</span>';
+          }
+          
+          // Get all unique subjects from students
+          const allSubjects = new Set();
+          students.forEach(student => {
+            if (student.subjects) {
+              student.subjects.forEach(subject => allSubjects.add(subject));
+            }
+          });
+          
+          console.log("All available subjects from students:", Array.from(allSubjects));
+          
+          // Populate subject dropdown with all available subjects
+          const subjectSelect = document.getElementById("examSubject");
+          subjectSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
+          
+          // Add teacher's subjects first (if any) with special marking
+          if (teacherSubjects.length > 0) {
+            // Add a separator option
+            const separatorOption = document.createElement('option');
+            separatorOption.disabled = true;
+            separatorOption.textContent = '─── Your Teaching Subjects ───';
+            subjectSelect.appendChild(separatorOption);
+            
+            teacherSubjects.forEach(subject => {
+              const option = document.createElement('option');
+              option.value = subject;
+              option.textContent = `📚 ${subject} (Your Subject)`;
+              subjectSelect.appendChild(option);
+            });
+            
+            // Add another separator
+            const separatorOption2 = document.createElement('option');
+            separatorOption2.disabled = true;
+            separatorOption2.textContent = '─── Other Subjects ───';
+            subjectSelect.appendChild(separatorOption2);
+          }
+          
+          // Add other subjects
+          allSubjects.forEach(subject => {
+            if (!teacherSubjects.includes(subject)) {
+              const option = document.createElement('option');
+              option.value = subject;
+              option.textContent = `📖 ${subject}`;
+              subjectSelect.appendChild(option);
+            }
+          });
+          
+          // Reset exam type selection
+          document.getElementById("examType").value = "";
+          
+          // Hide sections initially
+          document.getElementById("examInstructions").style.display = "none";
+          document.getElementById("examStudentsList").style.display = "none";
+          document.getElementById("noStudentsMessage").style.display = "none";
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Teacher Data Loaded!',
+            text: `Welcome back, ${teacherData.name}! Your teaching data has been retrieved from Firestore.`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+          // Show modal after a short delay
+          setTimeout(() => {
+            const modal = new bootstrap.Modal(document.getElementById("examMarksModal"));
+            modal.show();
+          }, 500);
+          
+        } catch (error) {
+          console.error("Error loading teacher data from Firestore:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Firestore Error',
+            text: `Failed to retrieve teacher data from Firestore: ${error.message}`,
+            confirmButtonColor: '#d33'
+          });
+        }
+      };
+
+      // Update teacher profile with subjects
+      window.updateTeacherProfile = async function() {
+        const teacherName = document.getElementById("teacherName").value.trim();
+        const teacherSubjects = document.getElementById("teacherSubjects").value.trim();
+        
+        console.log("Teacher Name:", teacherName);
+        console.log("Teacher Subjects (raw):", document.getElementById("teacherSubjects").value);
+        console.log("Teacher Subjects (trimmed):", teacherSubjects);
+        
+        // Validation
+        if (!teacherName) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Name Required',
+            text: 'Please enter your full name.',
+            confirmButtonColor: '#3085d6'
+          });
+          return;
+        }
+        
+        // Make subjects optional - if empty, use empty array
+        let subjectsArray = [];
+        if (teacherSubjects && teacherSubjects.length > 0) {
+          // Parse subjects (split by comma and trim)
+          subjectsArray = teacherSubjects.split(',').map(subject => subject.trim()).filter(subject => subject.length > 0);
+          console.log("Parsed subjects array:", subjectsArray);
+        }
+        
+        try {
+          // Show loading state
+          Swal.fire({
+            title: 'Updating Profile...',
+            text: 'Please wait while we update your teacher profile.',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          // Update teacher profile in Firestore
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          await updateDoc(teacherRef, {
+            name: teacherName,
+            subjects: subjectsArray,
+            updatedAt: new Date().toISOString()
+          });
+          
+          // Show success message
+          const subjectsText = subjectsArray.length > 0 ? 
+            `with ${subjectsArray.length} subject(s): ${subjectsArray.join(', ')}` : 
+            'without any subjects assigned';
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Profile Updated Successfully!',
+            text: `Welcome ${teacherName}! Your profile has been updated ${subjectsText}.`,
+            confirmButtonColor: '#28a745',
+            confirmButtonText: 'Continue'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Close modal
+              const modal = bootstrap.Modal.getInstance(document.getElementById("teacherProfileModal"));
+              if (modal) {
+                modal.hide();
+              }
+              
+              // Update dashboard header with new data
+              const updatedTeacherData = {
+                name: teacherName,
+                subjects: subjectsArray,
+                role: "teacher",
+                updatedAt: new Date().toISOString()
+              };
+              updateDashboardHeader(updatedTeacherData);
+              
+              // Show updated message
+              Swal.fire({
+                icon: 'info',
+                title: 'Dashboard Updated',
+                text: 'Your dashboard has been updated with the new information.',
+                timer: 2000,
+                showConfirmButton: false
+              });
+            }
+          });
+          
+        } catch (error) {
+          console.error("Error updating teacher profile:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: 'Failed to update profile. Please check your connection and try again.',
+            confirmButtonColor: '#d33'
+          });
+        }
+      };
+
+      // Initialize
+      setTodayDate();
+
+      // Call initialize when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        initialize();
+      });
+
+      // Open teacher profile modal with existing data
+      window.openTeacherProfileModal = async function() {
+        try {
+          // Get current teacher's information
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          const teacherDoc = await getDoc(teacherRef);
+          
+          if (teacherDoc.exists()) {
+            const teacherData = teacherDoc.data();
+            
+            // Pre-fill the form with existing data
+            document.getElementById("teacherName").value = teacherData.name || '';
+            document.getElementById("teacherSubjects").value = teacherData.subjects ? teacherData.subjects.join(', ') : '';
+          }
+          
+          // Show modal
+          const modal = new bootstrap.Modal(document.getElementById("teacherProfileModal"));
+          modal.show();
+          
+        } catch (error) {
+          console.error("Error loading teacher data:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load teacher information. Please try again.',
+            confirmButtonColor: '#d33'
+          });
+        }
+      };
+
+      // Refresh teacher data from Firestore
+      window.refreshTeacherData = async function() {
+        try {
+          // Show loading state
+          Swal.fire({
+            title: 'Refreshing Data...',
+            text: 'Please wait while we fetch the latest data from Firestore.',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          // Get fresh teacher data from Firestore
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          const teacherDoc = await getDoc(teacherRef);
+          
+          if (!teacherDoc.exists()) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Teacher Profile Not Found',
+              text: 'Please complete your teacher profile first.',
+              confirmButtonColor: '#d33'
+            });
+            return;
+          }
+          
+          const teacherData = teacherDoc.data();
+          console.log("Fresh teacher data from Firestore:", teacherData);
+          
+          // Update display with fresh data
+          document.getElementById("teacherNameDisplay").textContent = teacherData.name || 'Not Set';
+          document.getElementById("teacherEmailDisplay").textContent = currentUser.email;
+          document.getElementById("teacherUserId").textContent = currentUser.uid;
+          
+          // Update last updated timestamp
+          const lastUpdated = teacherData.updatedAt ? 
+            new Date(teacherData.updatedAt).toLocaleString() : 
+            'Not available';
+          document.getElementById("teacherLastUpdated").textContent = lastUpdated;
+          
+          // Update subjects display
+          const teacherSubjects = teacherData.subjects || [];
+          const subjectsDisplay = document.getElementById("teacherSubjectsDisplay");
+          if (teacherSubjects.length > 0) {
+            subjectsDisplay.innerHTML = teacherSubjects.map(subject => 
+              `<span class="badge bg-success me-1 mb-1">${subject}</span>`
+            ).join('');
+          } else {
+            subjectsDisplay.innerHTML = '<span class="badge bg-warning">No subjects assigned</span>';
+          }
+          
+          // Update subject dropdown
+          const subjectSelect = document.getElementById("examSubject");
+          const currentSubject = subjectSelect.value;
+          
+          // Rebuild dropdown
+          subjectSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
+          
+          if (teacherSubjects.length > 0) {
+            const separatorOption = document.createElement('option');
+            separatorOption.disabled = true;
+            separatorOption.textContent = '─── Your Teaching Subjects ───';
+            subjectSelect.appendChild(separatorOption);
+            
+            teacherSubjects.forEach(subject => {
+              const option = document.createElement('option');
+              option.value = subject;
+              option.textContent = `📚 ${subject} (Your Subject)`;
+              if (subject === currentSubject) option.selected = true;
+              subjectSelect.appendChild(option);
+            });
+            
+            const separatorOption2 = document.createElement('option');
+            separatorOption2.disabled = true;
+            separatorOption2.textContent = '─── Other Subjects ───';
+            subjectSelect.appendChild(separatorOption2);
+          }
+          
+          // Add other subjects
+          const allSubjects = new Set();
+          students.forEach(student => {
+            if (student.subjects) {
+              student.subjects.forEach(subject => allSubjects.add(subject));
+            }
+          });
+          
+          allSubjects.forEach(subject => {
+            if (!teacherSubjects.includes(subject)) {
+              const option = document.createElement('option');
+              option.value = subject;
+              option.textContent = `📖 ${subject}`;
+              if (subject === currentSubject) option.selected = true;
+              subjectSelect.appendChild(option);
+            }
+          });
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Data Refreshed!',
+            text: 'Teacher data has been successfully refreshed from Firestore.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+        } catch (error) {
+          console.error("Error refreshing teacher data from Firestore:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Refresh Failed',
+            text: `Failed to refresh data from Firestore: ${error.message}`,
+            confirmButtonColor: '#d33'
+          });
+        }
+      };
+
+      // Refresh dashboard data from Firestore
+      window.refreshDashboardData = async function() {
+        try {
+          // Show loading state
+          Swal.fire({
+            title: 'Refreshing Dashboard...',
+            text: 'Please wait while we fetch the latest data from Firestore.',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          // Get fresh teacher data from Firestore
+          const teacherRef = doc(db, "teachers", currentUser.uid);
+          const teacherDoc = await getDoc(teacherRef);
+          
+          if (!teacherDoc.exists()) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Teacher Profile Not Found',
+              text: 'Please complete your teacher profile first.',
+              confirmButtonColor: '#d33'
+            });
+            return;
+          }
+          
+          const teacherData = teacherDoc.data();
+          console.log("Fresh teacher data from Firestore:", teacherData);
+          
+          // Update dashboard header with fresh data
+          updateDashboardHeader(teacherData);
+          
+          // Reload students data
+          await loadStudents();
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Dashboard Refreshed!',
+            text: `Welcome back, ${teacherData.name}! Dashboard data has been updated from Firestore.`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+        } catch (error) {
+          console.error("Error refreshing dashboard data from Firestore:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Refresh Failed',
+            text: `Failed to refresh data from Firestore: ${error.message}`,
+            confirmButtonColor: '#d33'
+          });
+        }
+      };
+
+      // Quick mark entry for individual student
+      window.quickMarkEntry = function(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+
+        const selectedSubject = document.getElementById("examSubject").value;
+        const selectedExam = document.getElementById("examType").value;
+
+        if (!selectedSubject || !selectedExam) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Selection Required',
+            text: 'Please select both subject and exam type first.'
+          });
+          return;
+        }
+
+        // Get current marks if any
+        let currentMark = "";
+        let currentObtainedMark = "";
+        
+        if (student.examMarks && 
+            student.examMarks[selectedSubject] && 
+            student.examMarks[selectedSubject][selectedExam]) {
+          
+          const markData = student.examMarks[selectedSubject][selectedExam];
+          if (typeof markData === 'object' && markData.mark !== undefined) {
+            currentMark = markData.mark;
+            currentObtainedMark = markData.obtainedMarks || markData.mark;
+          } else if (typeof markData === 'number') {
+            currentMark = markData;
+            currentObtainedMark = markData;
+          }
+        }
+
+        Swal.fire({
+          title: `Quick Mark Entry - ${student.name}`,
+          html: `
+            <div class="text-start">
+              <p><strong>Subject:</strong> ${selectedSubject}</p>
+              <p><strong>Exam:</strong> ${selectedExam}</p>
+              <p><strong>Student:</strong> ${student.name} (${student.userPrnNo})</p>
+              <hr>
+              <div class="row">
+                <div class="col-6">
+                  <label class="form-label"><strong>Marks (Out of 20):</strong></label>
+                  <input type="number" id="quickMark" class="form-control" 
+                         min="0" max="20" step="0.5" value="${currentMark}" placeholder="0-20">
+                </div>
+                <div class="col-6">
+                  <label class="form-label"><strong>Obtained Marks:</strong></label>
+                  <input type="number" id="quickObtainedMark" class="form-control" 
+                         min="0" max="20" step="0.5" value="${currentObtainedMark}" placeholder="0-20">
+                </div>
+              </div>
+              <div class="mt-3">
+                <label class="form-label"><strong>Remarks (Optional):</strong></label>
+                <textarea id="quickRemarks" class="form-control" rows="2" 
+                          placeholder="Add remarks about performance..."></textarea>
+              </div>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Save Marks',
+          cancelButtonText: 'Cancel',
+          preConfirm: () => {
+            const mark = document.getElementById('quickMark').value;
+            const obtainedMark = document.getElementById('quickObtainedMark').value;
+            
+            if (!mark || mark < 0 || mark > 20) {
+              Swal.showValidationMessage('Please enter valid marks (0-20)');
+              return false;
+            }
+            
+            if (!obtainedMark || obtainedMark < 0 || obtainedMark > 20) {
+              Swal.showValidationMessage('Please enter valid obtained marks (0-20)');
+              return false;
+            }
+            
+            return {
+              mark: parseFloat(mark),
+              obtainedMarks: parseFloat(obtainedMark),
+              remarks: document.getElementById('quickRemarks').value
+            };
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            saveQuickMark(studentId, result.value);
+          }
+        });
+      };
+
+      // Save quick mark entry
+      async function saveQuickMark(studentId, markData) {
+        try {
+          const student = students.find(s => s.id === studentId);
+          const selectedSubject = document.getElementById("examSubject").value;
+          const selectedExam = document.getElementById("examType").value;
+
+          const studentRef = doc(db, "students", studentId);
+          
+          // Prepare update data
+          const updateData = {
+            examMarks: {
+              [selectedSubject]: {
+                [selectedExam]: {
+                  mark: markData.mark,
+                  obtainedMarks: markData.obtainedMarks,
+                  remarks: markData.remarks,
+                  submittedAt: new Date().toISOString(),
+                  submittedBy: currentUser.email
+                }
+              }
+            }
+          };
+
+          await updateDoc(studentRef, updateData);
+
+          // Update local data
+          const studentIndex = students.findIndex(s => s.id === studentId);
+          if (studentIndex !== -1) {
+            if (!students[studentIndex].examMarks) {
+              students[studentIndex].examMarks = {};
+            }
+            if (!students[studentIndex].examMarks[selectedSubject]) {
+              students[studentIndex].examMarks[selectedSubject] = {};
+            }
+            students[studentIndex].examMarks[selectedSubject][selectedExam] = {
+              mark: markData.mark,
+              obtainedMarks: markData.obtainedMarks,
+              remarks: markData.remarks,
+              submittedAt: new Date().toISOString(),
+              submittedBy: currentUser.email
+            };
+          }
+
+          // Refresh the display
+          loadStudentsForExam();
+          
+          // Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Marks Saved!',
+            text: `${student.name} - ${markData.mark}/20 (Obtained: ${markData.obtainedMarks}/20) saved successfully.`,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          
+        } catch (error) {
+          console.error("Error saving quick mark:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Save Failed',
+            text: 'Failed to save marks. Please try again.'
+          });
+        }
+      }
+    </script>
+
+    <!-- Footer -->
+    <footer class="admin-footer">
+      <div class="footer-content">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+              <div class="footer-section">
+                <h5 class="footer-title">
+                  <i class="fas fa-graduation-cap"></i> 
+                  Matoshri Pratishthan's School of Engineering
+                </h5>
+                <p class="footer-description">
+                  Empowering education through advanced attendance management and student tracking systems. 
+                  Providing comprehensive tools for teachers to monitor and enhance student performance.
+                </p>
+                <div class="footer-social">
+                  <a href="#" class="social-link" title="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                  </a>
+                  <a href="#" class="social-link" title="Twitter">
+                    <i class="fab fa-twitter"></i>
+                  </a>
+                  <a href="#" class="social-link" title="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                  </a>
+                  <a href="#" class="social-link" title="Instagram">
+                    <i class="fab fa-instagram"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+              <div class="footer-section">
+                <h6 class="footer-subtitle">Quick Links</h6>
+                <ul class="footer-links">
+                  <li><a href="#" onclick="refreshDashboardData()">Dashboard</a></li>
+                  <li><a href="#" data-bs-toggle="modal" data-bs-target="#addStudentModal">Add Student</a></li>
+                  <li><a href="#" data-bs-toggle="modal" data-bs-target="#attendanceReportModal">Reports</a></li>
+                  <li><a href="#" data-bs-toggle="modal" data-bs-target="#manageSubjectsModal">Subjects</a></li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+              <div class="footer-section">
+                <h6 class="footer-subtitle">Contact Info</h6>
+                <div class="contact-info">
+                  <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>123 Education Street, Pune, Maharashtra</span>
+                  </div>
+                  <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+91 98765 43210</span>
+                  </div>
+                  <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>info@matoshri.edu.in</span>
+                  </div>
+                  <div class="contact-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Mon - Fri: 8:00 AM - 6:00 PM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+              <div class="footer-section">
+                <h6 class="footer-subtitle">System Stats</h6>
+                <div class="system-stats">
+                  <div class="stat-item">
+                    <span class="stat-number" id="footerTotalStudents">0</span>
+                    <span class="stat-label">Total Students</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number" id="footerPresentToday">0</span>
+                    <span class="stat-label">Present Today</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number" id="footerAttendanceRate">0%</span>
+                    <span class="stat-label">Attendance Rate</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <p class="copyright">
+                © 2024 Matoshri Pratishthan's School of Engineering. All rights reserved.
+              </p>
+            </div>
+            <div class="col-md-6 text-end">
+              <div class="footer-bottom-links">
+                <a href="#" class="bottom-link">Privacy Policy</a>
+                <a href="#" class="bottom-link">Terms of Service</a>
+                <a href="#" class="bottom-link">Support</a>
+              </div>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-12 text-center">
+              <div class="developer-credits">
+                <span class="developed-by">Developed by:</span>
+                <div class="developer-names">
+                  <span class="developer-name">Samiksha Wadle</span>
+                  <span class="developer-separator">•</span>
+                  <span class="developer-name">Rajshree Chavan</span>
+                  <span class="developer-separator">•</span>
+                  <span class="developer-name">Radhika Shinde</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <style>
+      /* Footer Styles */
+      .admin-footer {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4facfe 100%);
+        color: white;
+        margin-top: 50px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .admin-footer::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+          radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(79, 172, 254, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+      }
+
+      .footer-content {
+        position: relative;
+        z-index: 2;
+        padding: 50px 0 30px;
+      }
+
+      .footer-section {
+        animation: fadeInUp 0.8s ease-out both;
+      }
+
+      .footer-section:nth-child(1) { animation-delay: 0.1s; }
+      .footer-section:nth-child(2) { animation-delay: 0.2s; }
+      .footer-section:nth-child(3) { animation-delay: 0.3s; }
+      .footer-section:nth-child(4) { animation-delay: 0.4s; }
+
+      .footer-title {
+        color: #ffd700;
+        font-weight: 700;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .footer-title i {
+        margin-right: 10px;
+        animation: pulse 2s infinite;
+      }
+
+      .footer-description {
+        line-height: 1.6;
+        margin-bottom: 20px;
+        opacity: 0.9;
+      }
+
+      .footer-social {
+        display: flex;
+        gap: 15px;
+      }
+
+      .social-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 50%;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .social-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+        transition: left 0.5s;
+      }
+
+      .social-link:hover::before {
+        left: 100%;
+      }
+
+      .social-link:hover {
+        background: #ffd700;
+        color: #1e3c72;
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+      }
+
+      .footer-subtitle {
+        color: #ffd700;
+        font-weight: 600;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .footer-links li {
+        margin-bottom: 10px;
+      }
+
+      .footer-links a {
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        padding-left: 20px;
+      }
+
+      .footer-links a::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: #ffd700;
+        transition: transform 0.3s ease;
+      }
+
+      .footer-links a:hover {
+        color: #ffd700;
+        padding-left: 25px;
+      }
+
+      .footer-links a:hover::before {
+        transform: translateX(5px);
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .contact-item:hover {
+        transform: translateX(5px);
+      }
+
+      .contact-item i {
+        color: #ffd700;
+        width: 20px;
+        text-align: center;
+      }
+
+      .system-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .stat-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
+      }
+
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffd700;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+
+      .footer-bottom {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 20px 0;
+        position: relative;
+        z-index: 2;
+      }
+
+      .copyright {
+        margin: 0;
+        opacity: 0.8;
+        font-size: 0.9rem;
+      }
+
+      .footer-bottom-links {
+        display: flex;
+        gap: 20px;
+        justify-content: flex-end;
+      }
+
+      .bottom-link {
+        color: white;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .bottom-link::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #ffd700;
+        transition: width 0.3s ease;
+      }
+
+      .bottom-link:hover {
+        color: #ffd700;
+      }
+
+      .bottom-link:hover::after {
+        width: 100%;
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .footer-content {
+          padding: 30px 0 20px;
+        }
+
+        .footer-bottom-links {
+          justify-content: center;
+          margin-top: 10px;
+        }
+
+        .copyright {
+          text-align: center;
+        }
+
+        .social-link {
+          width: 35px;
+          height: 35px;
+        }
+
+        .stat-item {
+          padding: 8px 12px;
+        }
+
+        .stat-number {
+          font-size: 1.2rem;
+        }
+
+        .developer-names {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .developer-separator {
+          display: none;
+        }
+
+        .developer-name {
+          font-size: 0.9rem;
+          padding: 4px 10px;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .footer-social {
+          justify-content: center;
+        }
+
+        .footer-bottom-links {
+          flex-direction: column;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .developer-credits {
+          margin-top: 10px;
+          padding: 10px 0;
+        }
+
+        .developed-by {
+          font-size: 0.8rem;
+        }
+
+        .developer-name {
+          font-size: 0.85rem;
+          padding: 3px 8px;
+        }
+      }
+
+      /* Developer Credits Styles */
+      .developer-credits {
+        margin-top: 15px;
+        padding: 15px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        animation: fadeInUp 0.8s ease-out 0.5s both;
+      }
+
+      .developed-by {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .developer-names {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 5px;
+      }
+
+      .developer-name {
+        color: #ffd700;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 5px 12px;
+        background: rgba(255, 215, 0, 0.1);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        animation: developerNameSlideIn 0.6s ease-out both;
+      }
+
+      .developer-name:nth-child(1) { animation-delay: 0.6s; }
+      .developer-name:nth-child(3) { animation-delay: 0.7s; }
+      .developer-name:nth-child(5) { animation-delay: 0.8s; }
+
+      .developer-name::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+        transition: left 0.5s;
+      }
+
+      .developer-name:hover::before {
+        left: 100%;
+      }
+
+      .developer-name:hover {
+        background: rgba(255, 215, 0, 0.2);
+        border-color: #ffd700;
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        color: #fff;
+      }
+
+      .developer-separator {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1.2rem;
+        font-weight: bold;
+        animation: separatorPulse 2s ease-in-out infinite;
+      }
+
+      .developer-separator:nth-child(2) { animation-delay: 0.5s; }
+      .developer-separator:nth-child(4) { animation-delay: 1s; }
+
+      @keyframes developerNameSlideIn {
+        0% {
+          opacity: 0;
+          transform: translateY(20px) scale(0.8);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes separatorPulse {
+        0%, 100% {
+          opacity: 0.5;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+    </style>
+
+    <script>
+      // Update footer stats when dashboard loads
+      function updateFooterStats() {
+        const totalStudents = document.getElementById('totalStudents').textContent;
+        const presentToday = document.getElementById('presentToday').textContent;
+        const attendanceRate = document.getElementById('attendanceRate').textContent;
+
+        document.getElementById('footerTotalStudents').textContent = totalStudents;
+        document.getElementById('footerPresentToday').textContent = presentToday;
+        document.getElementById('footerAttendanceRate').textContent = attendanceRate;
+      }
+
+      // Call this function after dashboard data loads
+      document.addEventListener('DOMContentLoaded', function() {
+        // Update footer stats after a short delay to ensure dashboard data is loaded
+        setTimeout(updateFooterStats, 1000);
+      });
+
+      // Update footer stats whenever dashboard refreshes
+      const originalRefreshFunction = window.refreshDashboardData;
+      window.refreshDashboardData = function() {
+        if (originalRefreshFunction) {
+          originalRefreshFunction();
+        }
+        setTimeout(updateFooterStats, 2000);
+      };
+    </script>
+  </body>
+</html> 

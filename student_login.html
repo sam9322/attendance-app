@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Student Login - Smart Attendance</title>
+    <link rel="icon" href="./images/favicon.ico.png">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+      /* Modern Theme Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-image: url('./images/favicon.ico.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* Animated Background */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%),
+          radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+        animation: backgroundShift 20s ease-in-out infinite;
+        z-index: -1;
+      }
+
+      @keyframes backgroundShift {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        25% { transform: translateX(-10px) translateY(-10px); }
+        50% { transform: translateX(10px) translateY(-5px); }
+        75% { transform: translateX(-5px) translateY(10px); }
+      }
+
+      /* Header Styles */
+      .modern-header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 20px 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .modern-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: headerShimmer 3s ease-in-out infinite;
+      }
+
+      @keyframes headerShimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+      }
+
+      .header-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+      }
+
+      .main-title {
+        color: white;
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        animation: titleGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes titleGlow {
+        0% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
+        100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 255, 255, 0.5); }
+      }
+
+      .subtitle {
+        color: #ffd700;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        animation: subtitleFloat 3s ease-in-out infinite;
+      }
+
+      @keyframes subtitleFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 60px 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 200px);
+      }
+
+      /* Student Form Container */
+      .student-form-container {
+        width: 100%;
+        max-width: 500px;
+        animation: slideInUp 0.8s ease-out;
+      }
+
+      @keyframes slideInUp {
+        0% {
+          opacity: 0;
+          transform: translateY(50px) scale(0.9);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .student-form-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        border-radius: 25px;
+        padding: 50px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .student-form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+        animation: borderFlow 3s linear infinite;
+      }
+
+      @keyframes borderFlow {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      .student-form-title {
+        color: #333;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 30px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+      }
+
+      .student-form-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 2px;
+      }
+
+      .student-form {
+        position: relative;
+      }
+
+      .input-group {
+        position: relative;
+        margin-bottom: 25px;
+      }
+
+      .student-form input {
+        width: 100%;
+        padding: 18px 20px 18px 50px;
+        border: 2px solid #e1e5e9;
+        border-radius: 15px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        position: relative;
+      }
+
+      .student-form input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+      }
+
+      .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 18px;
+        z-index: 2;
+        transition: all 0.3s ease;
+      }
+
+      .student-form input:focus + .input-icon {
+        color: #764ba2;
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+      }
+
+      .btn-modern {
+        padding: 15px 35px;
+        border: none;
+        border-radius: 15px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+      }
+
+      .btn-modern:hover::before {
+        left: 100%;
+      }
+
+      .btn-primary-modern {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .btn-primary-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary-modern {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+      }
+
+      .btn-secondary-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+      }
+
+      .student-login-link {
+        text-align: center;
+        margin-top: 30px;
+        color: #666;
+        font-size: 16px;
+      }
+
+      .student-login-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .student-login-link a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 0.3s ease;
+      }
+
+      .student-login-link a:hover::after {
+        width: 100%;
+      }
+
+      .student-login-link a:hover {
+        color: #764ba2;
+      }
+
+      /* Back to Home Button */
+      .back-home-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .back-home-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+        color: white;
+      }
+
+      /* Loading Animation */
+      .loading {
+        position: relative;
+        pointer-events: none;
+      }
+
+      .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+      }
+
+      .loading::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 10;
+      }
+
+      @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .main-title {
+          font-size: 2.5rem;
+        }
+
+        .subtitle {
+          font-size: 1rem;
+        }
+
+        .student-form-card {
+          margin: 20px;
+          padding: 30px 20px;
+        }
+
+        .student-form-title {
+          font-size: 2rem;
+        }
+
+        .btn-group {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .btn-modern {
+          width: 100%;
+          max-width: 200px;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .main-title {
+          font-size: 2rem;
+        }
+
+        .student-form-title {
+          font-size: 1.8rem;
+        }
+
+        .student-form input {
+          padding: 15px 15px 15px 45px;
+        }
+
+        .input-icon {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Modern Header -->
+    <header class="modern-header">
+      <div class="container">
+        <div class="header-content">
+          <h1 class="main-title">
+            <i class="fas fa-user-graduate"></i> 
+            Student Login
+          </h1>
+          <p class="subtitle">Access Your Academic Dashboard</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Back to Home Button -->
+    <a href="index.html" class="back-home-btn" title="Back to Home">
+      <i class="fas fa-home"></i>
+    </a>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container">
+        <div class="student-form-container">
+          <div class="student-form-card">
+            <h2 class="student-form-title">Welcome Back, Student!</h2>
+            <form action="" id="studentLoginForm" class="student-form">
+              <div class="input-group">
+                <input type="text" id="studentLoginPrn" placeholder="Enter your PRN Number" required>
+                <i class="fas fa-id-card input-icon"></i>
+              </div>
+              
+              <div class="input-group">
+                <input type="password" id="studentLoginPassword" placeholder="Enter your password" required>
+                <i class="fas fa-lock input-icon"></i>
+              </div>
+              
+              <div class="btn-group">
+                <button type="submit" class="btn-modern btn-primary-modern" id="studentLoginSubmit">
+                  <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button type="reset" class="btn-modern btn-secondary-modern">
+                  <i class="fas fa-redo"></i> Reset
+                </button>
+              </div>
+            </form>
+            <p class="student-login-link">
+              Don't have an account? 
+              <a href="student_register.html">Register here</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="modern-footer">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3><i class="fas fa-graduation-cap"></i> Smart Attendance</h3>
+          <p>Empowering educational institutions with modern attendance management solutions. Streamline your academic processes with our comprehensive system.</p>
+          <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="student_login.html"><i class="fas fa-user-graduate"></i> Student Login</a></li>
+            <li><a href="teacher_register.html"><i class="fas fa-chalkboard-teacher"></i> Teacher Registration</a></li>
+            <li><a href="student_register.html"><i class="fas fa-user-plus"></i> Student Registration</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Contact Info</h4>
+          <div class="contact-info">
+            <p><i class="fas fa-map-marker-alt"></i> MATOSHRI PRATISHTHAN'S SCHOOL OF ENGINEERING</p>
+            <p><i class="fas fa-phone"></i> +91 123-456-7890</p>
+            <p><i class="fas fa-envelope"></i> info@smartattendance.edu</p>
+            <p><i class="fas fa-clock"></i> Mon - Fri: 8:00 AM - 6:00 PM</p>
+          </div>
+        </div>
+
+        <div class="footer-section">
+          <h4>System Stats</h4>
+          <div class="stats">
+            <div class="stat-item">
+              <span class="stat-number">500+</span>
+              <span class="stat-label">Students</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">50+</span>
+              <span class="stat-label">Teachers</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">99.9%</span>
+              <span class="stat-label">Uptime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="footer-bottom-content">
+          <p>&copy; 2024 Smart Attendance Management System. All rights reserved.</p>
+          <div class="developer-credits">
+            <span>Developed by:</span>
+            <div class="developer-badges">
+              <span class="developer-badge">Samiksha Walbe</span>
+              <span class="developer-badge">Radhika Shinde</span>
+              <span class="developer-badge">Rajashri Chavan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <style>
+      /* Footer Styles */
+      .modern-footer {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 50px 0 20px;
+        margin-top: 80px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .modern-footer::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+        animation: borderFlow 3s linear infinite;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+        padding: 0 20px;
+      }
+
+      .footer-section h3 {
+        color: #ffd700;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+      }
+
+      .footer-section h4 {
+        color: #ffd700;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+      }
+
+      .footer-section p {
+        color: #bdc3c7;
+        line-height: 1.6;
+        margin-bottom: 15px;
+      }
+
+      .social-links {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .social-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50%;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 18px;
+      }
+
+      .social-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        color: white;
+      }
+
+      .footer-links {
+        list-style: none;
+        padding: 0;
+      }
+
+      .footer-links li {
+        margin-bottom: 10px;
+      }
+
+      .footer-links a {
+        color: #bdc3c7;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .footer-links a:hover {
+        color: #ffd700;
+        transform: translateX(5px);
+      }
+
+      .contact-info p {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        color: #bdc3c7;
+      }
+
+      .contact-info i {
+        color: #ffd700;
+        width: 20px;
+      }
+
+      .stats {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .stat-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffd700;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: #bdc3c7;
+        margin-top: 5px;
+      }
+
+      .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 40px;
+        padding-top: 20px;
+      }
+
+      .footer-bottom-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .footer-bottom p {
+        color: #bdc3c7;
+        margin: 0;
+      }
+
+      .developer-credits {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .developer-credits span {
+        color: #bdc3c7;
+        font-size: 0.9rem;
+      }
+
+      .developer-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .developer-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .developer-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        .footer-content {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+
+        .footer-bottom-content {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .developer-credits {
+          justify-content: center;
+        }
+      }
+    </style>
+     
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+      import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+      import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+
+      // Your web app's Firebase configuration (same as index.html)
+      const firebaseConfig = {
+        apiKey: "AIzaSyCSye8NePlV_FByjjopY9-sCPNcYZBylPI",
+        authDomain: "student-attendance-21ea5.firebaseapp.com",
+        projectId: "student-attendance-21ea5",
+        storageBucket: "student-attendance-21ea5.firebasestorage.app",
+        messagingSenderId: "453679875810",
+        appId: "1:453679875810:web:97a0e672f34e34db6600bb",
+        measurementId: "G-TH00VX41SF"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app); // Initialize Firestore
+
+      const studentLoginForm = document.getElementById("studentLoginForm");
+      const studentLoginPrnInput = document.getElementById("studentLoginPrn");
+      const studentLoginPasswordInput = document.getElementById("studentLoginPassword");
+      const submitBtn = document.getElementById("studentLoginSubmit");
+
+      studentLoginForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          
+          // Add loading animation
+          const originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+          submitBtn.disabled = true;
+          studentLoginForm.classList.add('loading');
+          
+          const prn = studentLoginPrnInput.value.trim();
+          const password = studentLoginPasswordInput.value;
+
+          try {
+              // Query Firestore for student with this PRN
+              const studentsRef = collection(db, "students");
+              const q = query(studentsRef, where("userPrnNo", "==", prn));
+              const querySnapshot = await getDocs(q);
+
+              if (querySnapshot.empty) {
+                  alert("No student found with this PRN number. Please check and try again.");
+                  return;
+              }
+
+              // Assume PRN is unique, so take the first match
+              const studentDoc = querySnapshot.docs[0];
+              const studentData = studentDoc.data();
+              const email = studentData.email;
+
+              if (!email) {
+                  alert("No email found for this PRN. Please contact your teacher.");
+                  return;
+              }
+
+              if (email.includes("@teacher.com")) {
+                  alert("Teacher accounts cannot log in here. Please use the Teacher Login on the homepage.");
+                  return;
+              }
+
+              // Try to sign in with the found email and entered password
+              try {
+                  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                  const user = userCredential.user;
+                  console.log("Student logged in:", user);
+                  localStorage.setItem("userRole", "student"); // Set role to student
+                  alert("Student Login successful!");
+                  window.location.href = "student_dashboard.html"; // Redirect to student dashboard
+              } catch (error) {
+                  const errorMessage = error.message;
+                  alert(`Login failed: ${errorMessage}. Please check your PRN and password.`);
+                  console.error("Login error:", error.code, errorMessage);
+              }
+          } catch (error) {
+              alert("An error occurred while logging in. Please try again later.");
+              console.error("Firestore query error:", error);
+          } finally {
+              // Restore button state
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+              studentLoginForm.classList.remove('loading');
+          }
+      });
+
+    </script>
+  </body>
+</html> 
